@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier de l'Avent Musical</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap');
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a2639;
+            background-image: 
+                radial-gradient(white 1px, transparent 1px),
+                radial-gradient(white 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .snow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        h1 {
+            text-align: center;
+            color: #e6b800;
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 40px;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .day {
+            background: linear-gradient(135deg, #c70039, #900c3f);
+            border: 3px solid #f1c40f;
+            border-radius: 15px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .day::before {
+            content: "🎄";
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 1.2em;
+        }
+
+        .day::after {
+            content: "🎵";
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            font-size: 1.2em;
+        }
+
+        .day.locked {
+            opacity: 0.7;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+        .day:not(.locked):hover {
+            transform: scale(1.05) rotate(2deg);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .day.opened {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            animation: sparkle 1.5s infinite;
+        }
+
+        @keyframes sparkle {
+            0% { box-shadow: 0 0 10px #f1c40f; }
+            50% { box-shadow: 0 0 20px #f1c40f; }
+            100% { box-shadow: 0 0 10px #f1c40f; }
+        }
+
+        .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-family: 'Mountains of Christmas', cursive;
+        }
+
+        .content {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 38, 57, 0.95);
+            padding: 15px;
+            text-align: center;
+            border-radius: 12px;
+        }
+
+        .day.opened .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+            font-size: 1.5em;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-button:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+        }
+
+        a {
+            color: #f1c40f;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid #f1c40f;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        a:hover {
+            background: #f1c40f;
+            color: #1a2639;
+        }
+
+        @media (max-width: 600px) {
+            .calendar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="snow"></div>
+    <div class="container">
+        <h1>✨ Calendrier de l'Avent Musical 🎵</h1>
+        <div class="calendar" id="calendar"></div>
+    </div>
+
+    <script>
+        // Animation de neige
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.innerHTML = '❄';
+            snowflake.style.position = 'fixed';
+            snowflake.style.top = '-20px';
+            snowflake.style.left = Math.random() * window.innerWidth + 'px';
+            snowflake.style.opacity = Math.random();
+            snowflake.style.fontSize = (Math.random() * 15 + 10) + 'px';
+            snowflake.style.color = 'white';
+            snowflake.style.zIndex = '1';
+            document.querySelector('.snow').appendChild(snowflake);
+
+            const speed = Math.random() * 3 + 2;
+            const rotation = Math.random() * 360;
+            let positionY = -20;
+
+            function fall() {
+                positionY += speed;
+                snowflake.style.top = positionY + 'px';
+                snowflake.style.transform = `rotate(${rotation + positionY}deg)`;
+
+                if (positionY < window.innerHeight) {
+                    requestAnimationFrame(fall);
+                } else {
+                    snowflake.remove();
+                }
+            }
+
+            fall();
+        }
+
+        setInterval(createSnowflake, 200);
+
+        // Remplacez ces liens par vos propres liens musicaux
+        const musicLinks = {
+            1: "https://www.youtube.com/watch?v=LROnjfhnZMo",
+            2: "Lien vers votre deuxième chanson",
+            3: "Lien vers votre troisième chanson",
+            // ... Ajoutez les liens pour les jours 4-24
+        };
+
+        function createCalendar() {
+            const calendar = document.getElementById('calendar');
+            const currentDate = new Date();
+            const currentDay = currentDate.getDate();
+            const currentMonth = currentDate.getMonth();
+
+            for (let i = 1; i <= 24; i++) {
+                const day = document.createElement('div');
+                day.className = 'day';
+                if (currentMonth === 11 && i > currentDay) {
+                    day.className += ' locked';
+                }
+
+                const number = document.createElement('div');
+                number.className = 'number';
+                number.textContent = i;
+                
+                const content = document.createElement('div');
+                content.className = 'content';
+                content.innerHTML = `
+                    <span class="close-button">×</span>
+                    <p>🎄 Jour ${i} 🎵</p>
+                    <a href="${musicLinks[i]}" target="_blank">Écouter la musique</a>
+                `;
+
+                day.appendChild(number);
+                day.appendChild(content);
+
+                day.addEventListener('click', function() {
+                    if (!this.classList.contains('locked')) {
+                        this.classList.toggle('opened');
+                    }
+                });
+
+                content.querySelector('.close-button').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    day.classList.remove('opened');
+                });
+
+                calendar.appendChild(day);
+            }
+        }
+
+        createCalendar();
+    </script>
+</body>
+</html>
